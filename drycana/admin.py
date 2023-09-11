@@ -1,8 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django import forms
 from django.forms.widgets import Select
-from django.db import connections
+from django.db import connections, connection
 from .models import Spot, AffiliateApp, LocationType, Tag, SpotImage, SpotAffiliate, MenuItem, CodeInterpreter
+from django.urls import path
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
 
 # Custom Time Widget
 HOUR_CHOICES = [(str(i), str(i)) for i in range(1, 13)]
@@ -119,7 +122,37 @@ class CodeInterpreterAdmin(admin.ModelAdmin):
     form = CodeInterpreterForm
     list_display = ['language', 'table', 'code', 'result']
 
-    
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        
+        # Execute the code when a new record is saved
+        if obj.language == 'SQL':
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(obj.code)
+                    results = cursor.fetchall()
+                obj.result = str(results)
+                obj.save()
+                messages.success(request, 'SQL code executed successfully.')
+            except Exception as e:
+                messages.error(request, f'Error executing SQL: {e}')
+        
+        elif obj.language == 'Python':
+            # Caution: Executing arbitrary Python code can be dangerous.
+            # Ensure you have proper safeguards in place.
+            try:
+                exec(obj.code)
+                messages.success(request, 'Python code executed successfully.')
+            except Exception as e:
+                messages.error(request, f'Error executing Python: {e}')
+
+
+def execute_code(modeladmin, request, queryset):
+    for obj in queryset:
+        obj.save()  # This will trigger the save method which executes the code
+
+execute_code.short_description = "Execute selected code"
+
 admin.site.register(AffiliateApp)
 admin.site.register(LocationType)
 admin.site.register(Tag)
