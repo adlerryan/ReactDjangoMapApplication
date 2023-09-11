@@ -1,0 +1,9 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Run Code</h1>
+<form method="post">
+    {% csrf_token %}
+    <!-- Add your form fields here -->
+    <input type="submit" value="Execute">
+</form>
+{% endblock %}

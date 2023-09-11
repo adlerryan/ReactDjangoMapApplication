@@ -465,7 +465,7 @@ const Map = memo(({ spots }) => {
     
     
     return (
-        <LoadScript googleMapsApiKey="AIzaSyDcF-y1pFCVBmzCJYFUhVjYz1EVg4WQSOQ">
+        <LoadScript googleMapsApiKey="APIKEY">
             <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
                 <div style={{ position: 'absolute', top: '10px', left: '10px', color: 'yellow', fontSize: '24px', fontFamily: 'cursive' }}>
                     drycana

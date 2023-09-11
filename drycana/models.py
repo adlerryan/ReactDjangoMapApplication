@@ -41,6 +41,27 @@ class Spot(models.Model):
     location_types = models.ManyToManyField(LocationType, blank=True, related_name='spots')
     tags = models.ManyToManyField(Tag, blank=True, related_name='spots')
 
+    monday_open = models.TimeField(blank=True, null=True)
+    monday_close = models.TimeField(blank=True, null=True)
+
+    tuesday_open = models.TimeField(blank=True, null=True)
+    tuesday_close = models.TimeField(blank=True, null=True)
+
+    wednesday_open = models.TimeField(blank=True, null=True)
+    wednesday_close = models.TimeField(blank=True, null=True)
+
+    thursday_open = models.TimeField(blank=True, null=True)
+    thursday_close = models.TimeField(blank=True, null=True)
+
+    friday_open = models.TimeField(blank=True, null=True)
+    friday_close = models.TimeField(blank=True, null=True)
+
+    saturday_open = models.TimeField(blank=True, null=True)
+    saturday_close = models.TimeField(blank=True, null=True)
+
+    sunday_open = models.TimeField(blank=True, null=True)
+    sunday_close = models.TimeField(blank=True, null=True)
+
     def __str__(self):
         return self.name
 
@@ -59,3 +80,36 @@ class SpotImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.spot.name}"
+    
+
+class MenuItem(models.Model):
+    spot = models.ForeignKey(Spot, on_delete=models.CASCADE)
+    item_name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+    
+    def __str__(self):
+        return self.item_name
+
+
+# Code Interpreter to view data
+class CodeInterpreter(models.Model):
+    LANGUAGE_CHOICES = [
+        ('SQL', 'SQL'),
+        ('Python', 'Python')
+    ]
+    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES)
+    code = models.TextField()
+    result = models.TextField(blank=True, null=True)
+    table = models.CharField(max_length=100, blank=True, null=True)
+
+def save(self, *args, **kwargs):
+    if self.language == 'SQL':
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute(self.code)
+            self.result = cursor.fetchall()
+    elif self.language == 'Python':
+        # This is a very basic and potentially dangerous way to execute Python code.
+        # You should use a safer method in a production environment.
+        exec(self.code)
+    super().save(*args, **kwargs)
