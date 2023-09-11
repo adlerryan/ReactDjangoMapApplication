@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { GoogleMap, LoadScript, MarkerF } from '@react-google-maps/api';
 import Modal from '@mui/material/Modal';
 import Backdrop from '@mui/material/Backdrop';
@@ -12,7 +12,7 @@ import { useMediaQuery } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { FiPhoneCall } from 'react-icons/fi';
 import { BsStar } from 'react-icons/bs';
-import { TbWorldWww } from 'react-icons/tb'; // Please note: I'm not aware of a 'TbWorldWww' icon. Ensure this import is correct.
+import { TbWorldWww } from 'react-icons/tb'; 
 import { SiUber } from 'react-icons/si';
 import { FaLyft } from 'react-icons/fa';
 import { ImYelp } from 'react-icons/im';
@@ -21,8 +21,43 @@ import { MdOutlineDirections } from 'react-icons/md';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FiCopy } from 'react-icons/fi';
 import Slider from '@mui/material/Slider';
+import { Carousel } from 'react-responsive-carousel';
+import axios from 'axios';
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // Import carousel styles
 
 
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+}
+
+// Function to estimate walking duration based on distance and average walking speed
+function estimateWalkingDuration(origin, destination) {
+    const distance = calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng);
+    const averageWalkingSpeedKmH = 5; // Average walking speed in km/h
+    const estimatedTimeHours = distance / averageWalkingSpeedKmH;
+    const estimatedTimeMinutes = Math.round(estimatedTimeHours * 60); // Convert hours to minutes
+    return `${estimatedTimeMinutes} mins`;
+}
+
+const RatingText = styled('span')(({ theme }) => ({
+    position: 'absolute',
+    top: '50%',  // Center vertically
+    left: '50%',  // Center horizontally
+    transform: 'translate(-50%, -50%)',  // Adjust to perfectly center
+    fontWeight: 'bold',
+    fontSize: '1.2rem',  // Adjust size as needed
+    color: 'yellow',  // White color for better visibility
+    zIndex: 1  // Ensure it's above the star icon
+}));
 
 const TitleSection = styled('div')(({ theme }) => ({
     width: '100%',
@@ -176,8 +211,9 @@ const AddressContainer = styled('div')(({ theme }) => ({
 
 const getAffiliateIcon = (appName, url) => {
     const iconProps = {
-        size: 24,
-        style: { verticalAlign: 'middle' } // To align the icon with the text
+        size: 44,
+        style: { verticalAlign: 'middle' },
+        color: 'black'
     };
 
     let icon;
@@ -211,7 +247,8 @@ const IconWithLabel = styled('div')(({ theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '5px'
+    gap: '5px',
+    position: 'relative'
 }));
 
 const containerStyle = {
@@ -256,12 +293,10 @@ const Content = styled('div')(({ theme }) => ({
     '&::-webkit-scrollbar': {
         display: 'none',
     },
-    
-    // Hide scrollbar for Firefox
-    scrollbarWidth: 'none',
+  
     
     // Ensure content is still scrollable
-    '-ms-overflow-style': 'none',
+    msOverflowStyle: 'none',
     flex: 1, // This ensures that the Content component takes up all available space
     overflowY: 'auto',
     border: '1px solid #ccc',  // This adds a light gray border
@@ -342,17 +377,69 @@ const getActiveLinePosition = (page) => {
     }
 };
 
+async function getWalkingDuration(origin, destination) {
+    const endpoint = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin.lat},${origin.lng}&destinations=${destination.lat},${destination.lng}&mode=walking&key=AIzaSyDcF-y1pFCVBmzCJYFUhVjYz1EVg4WQSOQ`;
+
+    try {
+        const response = await axios.get(endpoint);
+        const data = response.data;
+
+        if (data.rows[0] && data.rows[0].elements[0].duration) {
+            return data.rows[0].elements[0].duration.text;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error fetching walking duration:", error);
+        return null;
+    }
+}
 
 
 
 const Map = memo(({ spots }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedSpot, setSelectedSpot] = useState(null);
+    const [userLocation, setUserLocation] = useState(null);
+    const [walkingDuration, setWalkingDuration] = useState(null);
 
-    const handleOpen = (spot) => {
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                });
+            }, error => {
+                console.error("Error getting location:", error);
+            }, { enableHighAccuracy: true });
+        }
+    }, []);
+
+    const handleOpen = async (spot) => {
         setSelectedSpot(spot);
         setIsOpen(true);
+        
+        if (userLocation) {
+            const duration = estimateWalkingDuration(userLocation, { lat: spot.latitude, lng: spot.longitude });
+            setWalkingDuration(duration);
+        }
+        
+
+        // Fetch all images
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/spotimage/`);
+            const allImages = await response.json();
+    
+            // Filter images for the selected spot
+            const spotSpecificImages = allImages.filter(img => img.spot === spot.id).map(imgObj => imgObj.image);
+            setSpotImages(spotSpecificImages);
+    
+        } catch (error) {
+            console.error("Error fetching spot images:", error);
+        }
     };
+    
 
     const handleClose = (event) => {
         // Check if the click event's target is the modal content itself
@@ -372,10 +459,13 @@ const Map = memo(({ spots }) => {
         setRatingValue(newValue);
     };
     const [activePage, setActivePage] = useState('map');
+    const [spotImages, setSpotImages] = useState([]);
+
 
     
+    
     return (
-        <LoadScript googleMapsApiKey="API KEY HERE">
+        <LoadScript googleMapsApiKey="AIzaSyDcF-y1pFCVBmzCJYFUhVjYz1EVg4WQSOQ">
             <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
                 <div style={{ position: 'absolute', top: '10px', left: '10px', color: 'yellow', fontSize: '24px', fontFamily: 'cursive' }}>
                     drycana
@@ -503,7 +593,21 @@ const Map = memo(({ spots }) => {
                             }}
                         />
                     ))}
+                        {userLocation && (
+                        <MarkerF
+                            position={userLocation}
+                            title="Your Location"
+                            options={{
+                                icon: {
+                                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                                },
+                                zIndex: 1000
+                            }}
+                        />
+                    )}
+                    {/* ... (rest of the markers for spots) */}
                 </GoogleMap>
+           
                 
                 <BottomMenuBar>
                     <MenuIcon isActive={activePage === 'favorites'} onClick={() => setActivePage('favorites')}><FaStar /></MenuIcon>
@@ -515,7 +619,7 @@ const Map = memo(({ spots }) => {
                 </BottomMenuBar>
 
                
-                    <StyledModal
+                <StyledModal
                 open={isOpen}
                 onClose={handleClose}
                 closeAfterTransition
@@ -533,57 +637,71 @@ const Map = memo(({ spots }) => {
                         transitionDelay: isOpen ? slideDuration : 0 
                     }}
                 >
-                    <Content className="modal-content"> {/* Add a class name to the modal content */}
-                        {/* <CloseButton onClick={handleClose}>
-                            <CloseIcon />
-                        </CloseButton> */}
+                    <Content className="modal-content"> 
                         {selectedSpot && (
                             <React.Fragment>
                                 <TitleSection>
                                     <TitleText>{selectedSpot.name}</TitleText>
                                 </TitleSection>
-                                {selectedSpot.main_image && 
-                                    <Image src={`http://127.0.0.1:8000${selectedSpot.main_image}`} alt={selectedSpot.name} />}
+
+
+
+
+                                <Carousel showThumbs={false}> 
+                                    {spotImages.map((image, index) => (
+                                        <div key={index}>
+                                            <img 
+                                                src={image} 
+                                                alt={selectedSpot.name} 
+                                                style={{ 
+                                                    maxWidth: '100%', 
+                                                    maxHeight: '30vh', 
+                                                    objectFit: 'contain', 
+                                                    margin: '3px auto'
+                                                
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </Carousel>
+                                <div style={{ marginBottom: '30px' }}></div>
                                 
-                                <Grid container spacing={3}>
-                                    <Grid item xs={4}>
+                                <Grid container spacing={5}>
+                                    <Grid item xs={3}>
                                         <IconWithLabel>
-                                            <FiPhoneCall size={24} />
-                                            <span>{selectedSpot.phone_number}</span>
+                                            <FiPhoneCall size={44} />
+                                            {/* <span>{selectedSpot.phone_number}</span> */}
                                         </IconWithLabel>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={3}>
                                         <IconWithLabel>
-                                            <BsStar size={24} />
-                                            <span>{selectedSpot.rating}</span>
+                                            <FaStar size={54} color="black" />
+                                            <RatingText>{selectedSpot.rating}</RatingText>
                                         </IconWithLabel>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={3}>
                                         <IconWithLabel>
-                                            <MdOutlineDirections size={24}  />
-                                            <span>Directions</span>
+                                            <MdOutlineDirections size={34} />
+                                            <span>{walkingDuration || "Calculating..."}</span>
                                         </IconWithLabel>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item xs={3}>
                                         <IconWithLabel>
-                                            <TbWorldWww size={24} />
-                                            {selectedSpot.website ? 
+                                            <TbWorldWww size={54} />
+                                            {/* {selectedSpot.website ? 
                                                 <a href={selectedSpot.website} target="_blank" rel="noopener noreferrer">Website</a> : 
-                                                <span>No Website</span>}
+                                                <span>No Website</span>} */}
                                         </IconWithLabel>
                                     </Grid>
                               
                                   
                                     {selectedSpot.affiliate_apps.map(app => (
-                                    <Grid item xs={4} key={app.affiliate_app.id}>
-                                        <IconWithLabel>
-                                            {getAffiliateIcon(app.affiliate_app.name, app.url || app.affiliate_app.website)}
-                                            <a href={app.url || app.affiliate_app.website} target="_blank" rel="noopener noreferrer">
-                                                {app.affiliate_app.name}
-                                            </a>
-                                        </IconWithLabel>
-                                    </Grid>
-                                ))}
+                                        <Grid item xs={3} key={app.affiliate_app.id}>
+                                            <IconWithLabel>
+                                                {getAffiliateIcon(app.affiliate_app.name, app.url || app.affiliate_app.website)}
+                                            </IconWithLabel>
+                                        </Grid>
+                                    ))}
                                 </Grid>
                                 <InfoSection>
                                     <InfoHeader>Address</InfoHeader>
