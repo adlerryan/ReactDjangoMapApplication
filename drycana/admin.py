@@ -1,3 +1,4 @@
+
 from django.contrib import admin, messages
 from django import forms
 from django.forms.widgets import Select
@@ -6,6 +7,7 @@ from .models import Spot, AffiliateApp, LocationType, Tag, SpotImage, SpotAffili
 from django.urls import path
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
 
 # Custom Time Widget
 HOUR_CHOICES = [(str(i), str(i)) for i in range(1, 13)]
@@ -117,11 +119,14 @@ class CodeInterpreterForm(forms.ModelForm):
         model = CodeInterpreter
         fields = ['language', 'table', 'code']
 
+
+
 @admin.register(CodeInterpreter)
+# ________________________ CODE INTERPRETER ___________________________
 class CodeInterpreterAdmin(admin.ModelAdmin):
     form = CodeInterpreterForm
     list_display = ['language', 'table', 'code', 'result']
-
+    
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         
@@ -130,8 +135,9 @@ class CodeInterpreterAdmin(admin.ModelAdmin):
             try:
                 with connection.cursor() as cursor:
                     cursor.execute(obj.code)
+                    column_headers = [col[0] for col in cursor.description]
                     results = cursor.fetchall()
-                obj.result = str(results)
+                obj.result = str((column_headers, results))
                 obj.save()
                 messages.success(request, 'SQL code executed successfully.')
             except Exception as e:
@@ -146,81 +152,38 @@ class CodeInterpreterAdmin(admin.ModelAdmin):
             except Exception as e:
                 messages.error(request, f'Error executing Python: {e}')
 
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        obj = CodeInterpreter.objects.get(pk=object_id)
+        
+        if obj.result:
+            # Convert the string result back to a list of tuples
+            results = eval(obj.result)
+            extra_context['results'] = results
+        
+        return super().change_view(
+            request, object_id, form_url, extra_context=extra_context,
+        )
+    
+    def response_change(self, request, obj):
+        if "_run" in request.POST:
+            obj.save()  # This will trigger the save method which executes the code
+            # Redirect back to the change form after executing the code
+            return HttpResponseRedirect(request.path)
+        return super().response_change(request, obj)
 
-def execute_code(modeladmin, request, queryset):
-    for obj in queryset:
-        obj.save()  # This will trigger the save method which executes the code
+        
 
-execute_code.short_description = "Execute selected code"
+# def execute_code(modeladmin, request, queryset):
+#     for obj in queryset:
+#         obj.save()  # This will trigger the save method which executes the code
+
+# execute_code.short_description = "Execute selected code"
+
+
+
+
 
 admin.site.register(AffiliateApp)
 admin.site.register(LocationType)
 admin.site.register(Tag)
-
-
-
-
-
-# from django import forms
-# from django.contrib import admin
-# from django.contrib.admin.widgets import AdminTimeWidget
-# from .models import Spot, AffiliateApp, LocationType, Tag, SpotImage, SpotAffiliate, MenuItem
-
-# # Create a custom form for the Spot model
-# class SpotAdminForm(forms.ModelForm):
-#     monday_open = forms.TimeField(widget=AdminTimeWidget())
-#     monday_close = forms.TimeField(widget=AdminTimeWidget())
-#     tuesday_open = forms.TimeField(widget=AdminTimeWidget())
-#     tuesday_close = forms.TimeField(widget=AdminTimeWidget())
-#     wednesday_open = forms.TimeField(widget=AdminTimeWidget())
-#     wednesday_close = forms.TimeField(widget=AdminTimeWidget())
-#     thursday_open = forms.TimeField(widget=AdminTimeWidget())
-#     thursday_close = forms.TimeField(widget=AdminTimeWidget())
-#     friday_open = forms.TimeField(widget=AdminTimeWidget())
-#     friday_close = forms.TimeField(widget=AdminTimeWidget())
-#     saturday_open = forms.TimeField(widget=AdminTimeWidget())
-#     saturday_close = forms.TimeField(widget=AdminTimeWidget())
-#     sunday_open = forms.TimeField(widget=AdminTimeWidget())
-#     sunday_close = forms.TimeField(widget=AdminTimeWidget())
-
-#     class Meta:
-#         model = Spot
-#         fields = '__all__'
-
-
-# class SpotImageInline(admin.TabularInline):
-#     model = SpotImage
-
-# class SpotAffiliateInline(admin.TabularInline):
-#     model = SpotAffiliate
-#     extra = 1
-
-# @admin.register(Spot)
-# class SpotAdmin(admin.ModelAdmin):
-#     form = SpotAdminForm  # Use the custom form
-#     list_display = (
-#         'name', 'address', 'latitude', 'longitude', 'website'
-#     )
-#     search_fields = ('name', 'address')
-#     inlines = [SpotImageInline, SpotAffiliateInline]
-#     fieldsets = (
-#         (None, {
-#             'fields': ('name', 'address', 'latitude', 'longitude', 'website')
-#         }),
-#         ('Hours', {
-#             'fields': (
-#                 ('monday_open', 'monday_close'),
-#                 ('tuesday_open', 'tuesday_close'),
-#                 ('wednesday_open', 'wednesday_close'),
-#                 ('thursday_open', 'thursday_close'),
-#                 ('friday_open', 'friday_close'),
-#                 ('saturday_open', 'saturday_close'),
-#                 ('sunday_open', 'sunday_close')
-#             ),
-#         }),
-#     )
-
-# admin.site.register(AffiliateApp)
-# admin.site.register(LocationType)
-# admin.site.register(Tag)
-# admin.site.register(MenuItem)

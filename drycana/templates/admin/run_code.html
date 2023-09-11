@@ -1,9 +1,24 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-<h1>Run Code</h1>
-<form method="post">
+  <h1>Run Code</h1>
+  <form method="post">
     {% csrf_token %}
-    <!-- Add your form fields here -->
-    <input type="submit" value="Execute">
-</form>
+    <label for="language">Language:</label>
+    <select name="language" id="language">
+      <option value="SQL">SQL</option>
+      <option value="Python">Python</option>
+    </select>
+    <br>
+    <label for="table">Table:</label>
+    <select name="table" id="table">
+      {% for table in tables %}
+        <option value="{{ table }}">{{ table }}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <label for="code">Code:</label>
+    <textarea name="code" id="code" rows="10" cols="50"></textarea>
+    <br>
+    <input type="submit" value="Run">
+  </form>
 {% endblock %}

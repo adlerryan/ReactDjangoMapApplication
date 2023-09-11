@@ -62,7 +62,8 @@ ROOT_URLCONF = "drycana.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / 'build'],
+        # 'DIRS': [BASE_DIR / 'build'], # was previously this, before entering in code interpreter
+        'DIRS': [BASE_DIR / 'drycana/templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

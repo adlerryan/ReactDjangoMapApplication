@@ -1,0 +1,32 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+    <input type="submit" value="{% trans 'Save' %}" class="default" name="_save">
+    <input type="submit" value="Run" name="_run">
+</div>
+{% endblock %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<fieldset>
+    <h2>Results</h2>
+    <div id="results">
+        {% if results %}
+        <table>
+            <!-- Assuming the result is a list of lists, where each inner list is a row of data -->
+            {% for row in results %}
+            <tr>
+                {% for cell in row %}
+                <td>{{ cell }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No results to display.</p>
+        {% endif %}
+    </div>
+</fieldset>
+{% endblock %}

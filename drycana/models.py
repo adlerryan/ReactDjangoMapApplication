@@ -1,4 +1,6 @@
 from django.db import models
+from django.db import connection
+
 
 class MyModel(models.Model):
     name = models.CharField(max_length=100)
@@ -97,19 +99,35 @@ class CodeInterpreter(models.Model):
         ('SQL', 'SQL'),
         ('Python', 'Python')
     ]
+
     language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES)
+    table = models.CharField(max_length=255)
     code = models.TextField()
     result = models.TextField(blank=True, null=True)
-    table = models.CharField(max_length=100, blank=True, null=True)
 
-def save(self, *args, **kwargs):
-    if self.language == 'SQL':
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute(self.code)
-            self.result = cursor.fetchall()
-    elif self.language == 'Python':
-        # This is a very basic and potentially dangerous way to execute Python code.
-        # You should use a safer method in a production environment.
-        exec(self.code)
-    super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if self.language == 'SQL':
+            # Execute SQL code
+            with connection.cursor() as cursor:
+                cursor.execute(self.code)
+                column_headers = [col[0] for col in cursor.description]
+                results = cursor.fetchall()
+            self.result = str((column_headers, results))
+        elif self.language == 'Python':
+            # Execute Python code (with some safety checks)
+            self.result = str(exec(self.code))
+        super().save(*args, **kwargs)
+
+    def run_code(self):
+        # Here, you'll want to have the logic that executes the code
+        # For example:
+        if self.language == "SQL":
+            # Execute SQL code and update the result attribute
+            with connection.cursor() as cursor:
+                cursor.execute(self.code)
+                self.result = cursor.fetchall()
+        elif self.language == "Python":
+            # Execute Python code and update the result attribute
+            # Be very careful with this, as executing arbitrary Python code can be dangerous
+            self.result = str(eval(self.code))
+        self.save()
