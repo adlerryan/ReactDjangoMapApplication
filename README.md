@@ -6,16 +6,16 @@ This repository contains a web application that integrates React for the fronten
 - Continuously updating this repository. 
 
 ## Front-end (React)
-**frontend:** This directory houses the React frontend of the application.
-**src:** Contains the main React components and logic.
-**App.js:** The main React component.
-**Map.js:** Likely contains the logic and components related to map display and interaction.
-**Header.js:** Represents the header component of the application.
-**public:** Contains static assets like images, HTML templates, and manifest files.
+- **frontend:** This directory houses the React frontend of the application.
+- **src:** Contains the main React components and logic.
+- **App.js:** The main React component.
+- **Map.js:** Likely contains the logic and components related to map display and interaction.
+- **Header.js:** Represents the header component of the application.
+- **public:** Contains static assets like images, HTML templates, and manifest files.
 #### Other Files
-**manage.py:** A command-line utility that lets you interact with the Django project in various ways.
-**db.sqlite3:** SQLite database file.
-**spot_images:** Contains images related to the application.
+- **manage.py:** A command-line utility that lets you interact with the Django project in various ways.
+- **db.sqlite3:** SQLite database file.
+- **spot_images:** Contains images related to the application.
 
 ## Backend
 - **drycana:** This is the primary Django app. It contains the following key components:
