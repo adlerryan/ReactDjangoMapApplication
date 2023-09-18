@@ -28,4 +28,81 @@ This repository contains a web application that integrates React for the fronten
   - **migrations:** Contains database migration scripts.
   - **page:** Another Django app in the repository. It has similar components as the drycana app, such as models, views, serializers, and URLs.
 
+## Installation and Setup
+**Prerequisites:**
+Before you begin, ensure you have the following installed:
+  - Python (version 3.7 or newer)
+  - Node.js and npm
+  - Django
+  - Django Rest Framework
 
+#### Steps:
+**1. Clone the Repository:**
+```
+git clone https://github.com/adlerryan/ReactDjangoMapApplication.git
+```
+Navigate to the root directory of the project:
+```
+cd ReactDjangoMapApplication
+```
+**2. Set Up the Backend (Django):**
+
+a. Navigate to the root directory of the project:
+```
+cd ReactDjangoMapApplication
+```
+b. Create a virtual environment:
+```
+python -m venv venv
+```
+c. Activate the virtual environment:
+
+- On Windows:
+```
+.\venv\Scripts\activate
+```
+- On macOS and Linux:
+```
+source venv/bin/activate
+```
+d. Install the required Python packages:
+```
+pip install -r requirements.txt
+```
+e. Run the migrations to set up the database:
+```
+python manage.py migrate
+```
+f. Start the Django development server:
+```
+python manage.py runserver
+```
+**3. Set Up the Frontend (React):**
+
+a. Navigate to the frontend directory:
+```
+cd frontend
+```
+b. Install React and its dependencies (if not already listed in package.json):
+```
+npm install react react-dom react-scripts
+```
+c. Install the other required npm packages:
+```
+npm install
+```
+**4.Run the Application:**
+From the frontend directory, use the following command to start both the backend and frontend:
+```
+npm run dev
+```
+**5. Access the Application:**
+  - The Django backend should be running at http://localhost:8000/
+  - The React frontend should be accessible at http://localhost:3000/
+**6. Optional (Django Admin Setup):**
+If you wish to access the Django admin interface:
+a. Create a superuser:
+```
+python manage.py createsuperuser
+```
+b. Access the admin interface at **http://localhost:8000/admin/**
