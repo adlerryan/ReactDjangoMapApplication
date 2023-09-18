@@ -1,4 +1,3 @@
-# ReactDjangoMapApplication
 # Map Application with Django and Google Maps API
 This repository contains a web application that integrates React for the frontend and Django for the backend. The main functionality revolves around displaying and managing map-related data.
 
