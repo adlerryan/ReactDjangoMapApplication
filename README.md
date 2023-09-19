@@ -93,7 +93,8 @@ c. Install the other required npm packages:
 ```
 npm install
 ```
-**4.Run the Application:**
+**4. Run the Application:**
+
 From the frontend directory, use the following command to start both the backend and frontend:
 ```
 npm run dev
