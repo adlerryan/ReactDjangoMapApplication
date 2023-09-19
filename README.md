@@ -42,7 +42,7 @@ Before you begin, ensure you have the following installed:
   - Django Rest Framework
 
 **Google API Key**
-To make use of the map functionalities, you need to have a Google API key. Follow these steps to set it up:
+To make use of the map functionalities, you need to have a Google API key. API Keys that are referenced, will not be active. Follow these steps to set it up:
 1. Visit the Google Cloud Console.
 2. Create a new project or select an existing project.
 3. Navigate to the Credentials tab and click on Create Credentials.
