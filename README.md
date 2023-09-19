@@ -2,7 +2,10 @@
 This repository contains a web application that integrates React for the frontend and Django for the backend. The main functionality revolves around displaying and managing map-related data.
 
 # Update
-- Continuously updating this repository. 
+- Continuously updating this repository.
+- Front-end changes to be addressed.
+  
+https://github.com/adlerryan/ReactDjangoMapApplication/assets/131544944/180425e7-9910-4790-a1a0-807c0b9c243e
 
 ## Front-end (React)
 - **frontend:** This directory houses the React frontend of the application.
