@@ -28,7 +28,10 @@ https://github.com/adlerryan/ReactDjangoMapApplication/assets/131544944/180425e7
   - **urls.py:** Defines the URL patterns for the app.
   - **admin.py:** Configurations for the Django admin interface.
   - **migrations:** Contains database migration scripts.
-  - **page:** Another Django app in the repository. It has similar components as the drycana app, such as models, views, serializers, and URLs.
+  - **page:** Another Django app in the repository. It has similar components to the drycana app, such as models, views, serializers, and URLs.
+
+## Code Interpreter
+The backend contains a code interpreter that allows for the execution of code snippets. This can be found in the drycana app under the views.py file. It provides an interface for users to input code and query the databases.
 
 ## Installation and Setup
 **Prerequisites:**
@@ -37,6 +40,14 @@ Before you begin, ensure you have the following installed:
   - Node.js and npm
   - Django
   - Django Rest Framework
+
+**Google API Key**
+To make use of the map functionalities, you need to have a Google API key. Follow these steps to set it up:
+1. Visit the Google Cloud Console.
+2. Create a new project or select an existing project.
+3. Navigate to the Credentials tab and click on Create Credentials.
+4. Select API Key and note down the generated key.
+5. In your project, replace the placeholder for the API key with the key you just generated.
 
 #### Steps:
 **1. Clone the Repository:**
@@ -102,8 +113,10 @@ npm run dev
 **5. Access the Application:**
   - The Django backend should be running at http://localhost:8000/
   - The React frontend should be accessible at http://localhost:3000/
+    
 **6. Optional (Django Admin Setup):**
 If you wish to access the Django admin interface:
+
 a. Create a superuser:
 ```
 python manage.py createsuperuser
