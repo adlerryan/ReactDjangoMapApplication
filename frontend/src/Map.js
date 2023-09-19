@@ -465,7 +465,7 @@ const Map = memo(({ spots }) => {
     
     
     return (
-        <LoadScript googleMapsApiKey="AIzaSyD_WV-E_OY_yFrxua-BtmpdsAa5Ymi1Fkc">
+        <LoadScript googleMapsApiKey="AIzaSyA5l75r4aI4M6AIS-scSWWXHButD26KoR0">
             <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
                 <div style={{ position: 'absolute', top: '10px', left: '10px', color: 'yellow', fontSize: '24px', fontFamily: 'cursive' }}>
                     drycana
@@ -643,10 +643,8 @@ const Map = memo(({ spots }) => {
                                 <TitleSection>
                                     <TitleText>{selectedSpot.name}</TitleText>
                                 </TitleSection>
-
-
-
-
+                                
+                                
                                 <Carousel showThumbs={false}> 
                                     {spotImages.map((image, index) => (
                                         <div key={index}>

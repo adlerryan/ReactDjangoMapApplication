@@ -37,6 +37,7 @@ class HomePageView(TemplateView):
 
 def execute_code(request):
     if request.method == 'POST':
+        name = request.POST.get('name')
         language = request.POST.get('language')
         table = request.POST.get('table')
         code = request.POST.get('code')

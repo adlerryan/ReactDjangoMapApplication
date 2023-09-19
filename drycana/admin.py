@@ -136,10 +136,11 @@ class CodeInterpreterAdmin(admin.ModelAdmin):
                 with connection.cursor() as cursor:
                     cursor.execute(obj.code)
                     column_headers = [col[0] for col in cursor.description]
-                    results = cursor.fetchall()
-                obj.result = str((column_headers, results))
-                obj.save()
-                messages.success(request, 'SQL code executed successfully.')
+                    results = [list(row) for row in cursor.fetchall()]
+                    
+                    obj.result = str((column_headers, results))
+                    obj.save()
+                    messages.success(request, 'SQL code executed successfully.')
             except Exception as e:
                 messages.error(request, f'Error executing SQL: {e}')
         
@@ -158,9 +159,11 @@ class CodeInterpreterAdmin(admin.ModelAdmin):
         
         if obj.result:
             # Convert the string result back to a list of tuples
-            results = eval(obj.result)
+            column_headers, results = eval(obj.result)
+            extra_context['column_headers'] = column_headers
             extra_context['results'] = results
-        
+            
+            
         return super().change_view(
             request, object_id, form_url, extra_context=extra_context,
         )
